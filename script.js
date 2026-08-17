@@ -69,3 +69,4 @@ search.addEventListener("input", () => {
 
   displayMolecules(filtered);
 });
+alert("JavaScript is working!");
