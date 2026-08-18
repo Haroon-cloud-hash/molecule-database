@@ -1,74 +1,64 @@
-const molecules = [
-  {
-    name: "Oxygen",
-    formula: "O₂",
-    type: "Element",
-    info: "Oxygen is a gas essential for respiration and combustion."
-  },
-  {
-    name: "Water",
-    formula: "H₂O",
-    type: "Compound",
-    info: "Water is essential for life and is made of hydrogen and oxygen."
-  },
-  {
-    name: "Methane",
-    formula: "CH₄",
-    type: "Compound",
-    info: "Methane is a simple hydrocarbon and a major component of natural gas."
-  },
-  {
-    name: "Carbon Dioxide",
-    formula: "CO₂",
-    type: "Compound",
-    info: "Carbon dioxide is produced during respiration and combustion."
-  },
-  {
-    name: "Hydrogen",
-    formula: "H₂",
-    type: "Element",
-    info: "Hydrogen is the lightest element and is highly flammable."
-  },
-  {
-    name: "Nitrogen",
-    formula: "N₂",
-    type: "Element",
-    info: "Nitrogen is the most abundant gas in Earth's atmosphere."
-  }
-];
-
 const search = document.getElementById("search");
 const results = document.getElementById("results");
 
-function showResults(text) {
-  const query = text.trim().toLowerCase();
+async function searchMolecule() {
+  const query = search.value.trim();
 
-  if (query === "") {
-    results.innerHTML = "";
+  if (!query) {
+    results.innerHTML = "<p>Please enter a molecule name or formula.</p>";
     return;
   }
 
-  const found = molecules.filter(molecule =>
-    molecule.name.toLowerCase().includes(query) ||
-    molecule.formula.toLowerCase().includes(query) ||
-    molecule.type.toLowerCase().includes(query)
-  );
+  results.innerHTML = "<p>🔎 Searching molecule...</p>";
 
-  if (found.length === 0) {
-    results.innerHTML = "<p>No molecule found.</p>";
-    return;
+  try {
+    const url =
+      "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/" +
+      encodeURIComponent(query) +
+      "/property/MolecularFormula,MolecularWeight,IUPACName/JSON";
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Molecule not found");
+    }
+
+    const data = await response.json();
+    const molecule = data.PropertyTable.Properties[0];
+
+    results.innerHTML = `
+      <div class="molecule-card">
+        <h2>🧪 ${molecule.IUPACName || query}</h2>
+
+        <p>
+          <strong>Formula:</strong>
+          ${molecule.MolecularFormula || "Not available"}
+        </p>
+
+        <p>
+          <strong>Molecular Weight:</strong>
+          ${molecule.MolecularWeight || "Not available"} g/mol
+        </p>
+
+        <p>
+          <strong>Source:</strong>
+          PubChem
+        </p>
+      </div>
+    `;
+
+  } catch (error) {
+    results.innerHTML = `
+      <div class="molecule-card">
+        <h2>❌ Molecule not found</h2>
+        <p>Try another molecule name, such as Water, Oxygen or Methane.</p>
+      </div>
+    `;
   }
-
-  results.innerHTML = found.map(molecule => `
-    <div class="molecule-card">
-      <h2>${molecule.name}</h2>
-      <p><strong>Formula:</strong> ${molecule.formula}</p>
-      <p><strong>Type:</strong> ${molecule.type}</p>
-      <p>${molecule.info}</p>
-    </div>
-  `).join("");
 }
 
-search.addEventListener("input", function () {
-  showResults(this.value);
+search.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    searchMolecule();
+  }
 });
