@@ -32,7 +32,37 @@
         </div>
 
         <div id="results"></div>
+<section class="reaction-section">
 
+    <h2>⚗️ Chemical Reaction</h2>
+
+    <p>Select two compounds to check a known reaction.</p>
+
+    <select id="reactant1">
+        <option value="">Select first compound</option>
+        <option value="hydrogen">Hydrogen</option>
+        <option value="oxygen">Oxygen</option>
+        <option value="water">Water</option>
+        <option value="sodium-hydroxide">Sodium Hydroxide</option>
+        <option value="hydrochloric-acid">Hydrochloric Acid</option>
+    </select>
+
+    <select id="reactant2">
+        <option value="">Select second compound</option>
+        <option value="hydrogen">Hydrogen</option>
+        <option value="oxygen">Oxygen</option>
+        <option value="water">Water</option>
+        <option value="sodium-hydroxide">Sodium Hydroxide</option>
+        <option value="hydrochloric-acid">Hydrochloric Acid</option>
+    </select>
+
+    <button onclick="showReaction()">
+        ⚗️ Show Reaction
+    </button>
+
+    <div id="reaction-result"></div>
+
+</section>
     </main>
 
     <script src="molecules.js"></script>
