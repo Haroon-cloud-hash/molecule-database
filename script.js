@@ -1,137 +1,85 @@
-const search = document.getElementById("search");
-const results = document.getElementById("results");
-const reactionResult = document.getElementById("reaction-result");
-
-// ===============================
-// MOLECULE SEARCH - PUBCHEM
-// ===============================
-
-async function searchMolecule() {
-    const query = search.value.trim();
-
-    if (!query) {
-        results.innerHTML = "<p>⚠️ Please enter a molecule name.</p>";
-        return;
-    }
-
-    results.innerHTML = "<p>🔎 Searching PubChem...</p>";
-
-    try {
-        const url =
-            "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/" +
-            encodeURIComponent(query) +
-            "/property/MolecularFormula,MolecularWeight,IUPACName/JSON";
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error("Molecule not found");
-        }
-
-        const data = await response.json();
-
-        if (
-            !data.PropertyTable ||
-            !data.PropertyTable.Properties ||
-            data.PropertyTable.Properties.length === 0
-        ) {
-            throw new Error("Molecule not found");
-        }
-
-        const molecule = data.PropertyTable.Properties[0];
-
-        results.innerHTML = `
-            <div class="molecule-card">
-                <h2>🧪 ${molecule.IUPACName || query}</h2>
-
-                <p>
-                    <strong>Formula:</strong>
-                    ${molecule.MolecularFormula || "Not available"}
-                </p>
-
-                <p>
-                    <strong>Molecular Weight:</strong>
-                    ${molecule.MolecularWeight || "Not available"} g/mol
-                </p>
-
-                <p>
-                    <strong>Source:</strong>
-                    PubChem
-                </p>
-            </div>
-        `;
-
-    } catch (error) {
-        results.innerHTML = `
-            <div class="molecule-card">
-                <h2>❌ Molecule not found</h2>
-                <p>
-                    Try another name, such as Water, Oxygen,
-                    Glucose, Methane or Caffeine.
-                </p>
-            </div>
-        `;
-    }
-}
-
-
-// ===============================
-// ENTER KEY SEARCH
-// ===============================
-
-search.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        searchMolecule();
-    }
-});
-
-
-// ===============================
-// CHEMICAL REACTIONS
-// ===============================
-
 function showReaction() {
-
     const first = document.getElementById("reactant1").value;
     const second = document.getElementById("reactant2").value;
+    const result = document.getElementById("reaction-result");
 
     if (!first || !second) {
-        reactionResult.innerHTML =
-            "<p>⚠️ Please select both compounds.</p>";
+        result.innerHTML = "<p>⚠️ Please select both compounds.</p>";
         return;
     }
 
-    let reaction = null;
+    const key = first + "+" + second;
 
-    // Hydrogen + Oxygen → Water
-    if (
-        (first === "hydrogen" && second === "oxygen") ||
-        (first === "oxygen" && second === "hydrogen")
-    ) {
-        reaction = {
+    const reactions = {
+
+        "hydrogen+oxygen": {
             equation: "2H₂ + O₂ → 2H₂O",
-            name: "Formation of Water",
             info: "Hydrogen reacts with oxygen to form water."
-        };
-    }
+        },
 
-    // Sodium Hydroxide + Hydrochloric Acid
-    else if (
-        (first === "sodium-hydroxide" &&
-            second === "hydrochloric-acid") ||
-        (first === "hydrochloric-acid" &&
-            second === "sodium-hydroxide")
-    ) {
-        reaction = {
-            equation: "NaOH + HCl → NaCl + H₂O",
-            name: "Neutralization Reaction",
-            info: "Sodium hydroxide reacts with hydrochloric acid to form sodium chloride and water."
-        };
-    }
+        "oxygen+hydrogen": {
+            equation: "2H₂ + O₂ → 2H₂O",
+            info: "Hydrogen reacts with oxygen to form water."
+        },
 
-    // No known reaction
-    if (!reaction) {
-        reactionResult.innerHTML = `
+        "hydrochloric-acid+sodium-hydroxide": {
+            equation: "HCl + NaOH → NaCl + H₂O",
+            info: "This is a neutralisation reaction between an acid and a base."
+        },
+
+        "sodium-hydroxide+hydrochloric-acid": {
+            equation: "HCl + NaOH → NaCl + H₂O",
+            info: "This is a neutralisation reaction between an acid and a base."
+        },
+
+        "carbon-dioxide+water": {
+            equation: "CO₂ + H₂O ⇌ H₂CO₃",
+            info: "Carbon dioxide dissolves in water and forms carbonic acid."
+        },
+
+        "water+carbon-dioxide": {
+            equation: "CO₂ + H₂O ⇌ H₂CO₃",
+            info: "Carbon dioxide dissolves in water and forms carbonic acid."
+        },
+
+        "calcium-oxide+water": {
+            equation: "CaO + H₂O → Ca(OH)₂",
+            info: "Calcium oxide reacts with water to form calcium hydroxide."
+        },
+
+        "water+calcium-oxide": {
+            equation: "CaO + H₂O → Ca(OH)₂",
+            info: "Calcium oxide reacts with water to form calcium hydroxide."
+        },
+
+        "sodium-carbonate+hydrochloric-acid": {
+            equation: "Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂",
+            info: "An acid reacts with a carbonate to produce salt, water and carbon dioxide."
+        },
+
+        "hydrochloric-acid+sodium-carbonate": {
+            equation: "Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂",
+            info: "An acid reacts with a carbonate to produce salt, water and carbon dioxide."
+        }
+    };
+
+    if (reactions[key]) {
+
+        result.innerHTML = `
+            <div class="reaction-card">
+                <h3>🧪 Reaction Found</h3>
+                <p class="equation">
+                    ${reactions[key].equation}
+                </p>
+                <p>
+                    ${reactions[key].info}
+                </p>
+            </div>
+        `;
+
+    } else {
+
+        result.innerHTML = `
             <div class="reaction-card">
                 <h3>ℹ️ Reaction not available</h3>
                 <p>
@@ -140,19 +88,5 @@ function showReaction() {
                 </p>
             </div>
         `;
-        return;
     }
-
-    reactionResult.innerHTML = `
-        <div class="reaction-card">
-            <h3>⚗️ ${reaction.name}</h3>
-
-            <p>
-                <strong>Equation:</strong>
-                ${reaction.equation}
-            </p>
-
-            <p>${reaction.info}</p>
-        </div>
-    `;
-}
+                }
